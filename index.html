@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M.K. SERVICE - ग्राहक बुकिंग एवं रेट कार्ड</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans min-h-screen pb-12">
+
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-4 shadow-md text-center sticky top-0 z-50">
+        <h1 class="text-2xl font-black tracking-wide">M.K. SERVICE</h1>
+        <p class="text-xs text-blue-100">दानापुर एवं पटना - भरोसेमंद होम सर्विस</p>
+    </header>
+
+    <main class="max-w-md mx-auto p-4 space-y-5">
+
+        <!-- Navigation Tabs -->
+        <div class="flex border-b border-gray-300 bg-white rounded-lg p-1 shadow-sm">
+            <button onclick="switchCustTab('bookTab')" id="btnBook" class="flex-1 py-2 text-xs font-bold rounded-md bg-blue-600 text-white">
+                <i class="fa-solid fa-wrench mr-1"></i> सर्विस बुक करें
+            </button>
+            <button onclick="switchCustTab('rateTab')" id="btnRates" class="flex-1 py-2 text-xs font-bold rounded-md text-gray-600">
+                <i class="fa-solid fa-indian-rupee-sign mr-1"></i> रेट कार्ड देखें
+            </button>
+            <button onclick="switchCustTab('trackTab')" id="btnTrack" class="flex-1 py-2 text-xs font-bold rounded-md text-gray-600">
+                <i class="fa-solid fa-magnifying-glass mr-1"></i> स्टेटस ट्रैक करें
+            </button>
+        </div>
+
+        <!-- TAB 1: BOOKING FORM (WITH RATE CARD SELECTION) -->
+        <section id="bookTab" class="bg-white p-5 rounded-xl shadow border border-gray-200 space-y-4">
+            <h2 class="text-base font-bold text-gray-800 border-b pb-2 flex items-center gap-2">
+                <i class="fa-solid fa-calendar-check text-blue-600"></i> नई सर्विस दर्ज करें
+            </h2>
+            <form id="custBookingForm" onsubmit="saveCustomerBooking(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">आपका नाम</label>
+                    <input type="text" id="cName" placeholder="उदा. राहुल कुमार" required class="w-full p-2.5 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">मोबाइल नंबर</label>
+                    <input type="tel" id="cPhone" placeholder="10 अंकों का मोबाइल नंबर" pattern="[0-9]{10}" required class="w-full p-2.5 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">मुख्य सर्विस चुनें</label>
+                    <select id="cService" required onchange="filterRateCardForBooking()" class="w-full p-2.5 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">-- सर्विस चुनें --</option>
+                        <option value="AC Repair">AC रिपेयर एवं सर्विस</option>
+                        <option value="Fridge">रेफ्रिजरेटर (फ्रिज) रिपेयर</option>
+                        <option value="Washing Machine">वाशिंग मशीन रिपेयर</option>
+                        <option value="RO Purifier">RO वॉटर प्यूरीफायर</option>
+                        <option value="Geyser">गीजर रिपेयर</option>
+                        <option value="TV Repair">TV / LED रिपेयर</option>
+                    </select>
+                </div>
+
+                <!-- Rate Card Selection List inside Booking -->
+                <div id="bookingRateCardBox" class="hidden space-y-2 pt-2">
+                    <label class="block text-xs font-bold text-blue-700">रेट कार्ड से आवश्यक पार्ट्स/सर्विस चुनें (ऐच्छिक):</label>
+                    <div id="bookingRateCardList" class="max-h-36 overflow-y-auto border rounded-lg p-2 bg-gray-50 space-y-1.5 text-xs"></div>
+                    <div class="text-right text-xs font-bold text-green-700">
+                        अनुमानित कुल रेट: <span id="bookingEstTotal">₹0</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">पूरा पता (दानापुर / पटना)</label>
+                    <textarea id="cAddress" placeholder="मकान नं, गली/मोहल्ला, लैंडमार्क..." required rows="2" class="w-full p-2.5 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm shadow">
+                    बुकिंग कन्फर्म करें
+                </button>
+            </form>
+        </section>
+
+        <!-- TAB 2: RATE CARD VIEW FOR CUSTOMER -->
+        <section id="rateTab" class="hidden bg-white p-5 rounded-xl shadow border border-gray-200 space-y-4">
+            <h2 class="text-base font-bold text-gray-800 border-b pb-2 flex items-center justify-between">
+                <span><i class="fa-solid fa-list-ul text-blue-600 mr-1"></i> M.K. SERVICE फिक्स्ड रेट कार्ड</span>
+                <span class="text-[10px] text-gray-400 font-normal">(100% ट्रांसपेरेंट)</span>
+            </h2>
+            
+            <div id="customerRateCardContainer" class="space-y-4"></div>
+        </section>
+
+        <!-- TAB 3: TRACKING -->
+        <section id="trackTab" class="hidden bg-white p-5 rounded-xl shadow border border-gray-200 space-y-4">
+            <h2 class="text-base font-bold text-gray-800 border-b pb-2 flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> अपनी बुकिंग का लाइव स्टेटस
+            </h2>
+            <div class="flex gap-2">
+                <input type="tel" id="trackPhone" placeholder="अपना मोबाइल नंबर डालें" class="flex-1 p-2.5 border rounded-lg text-sm outline-none">
+                <button onclick="trackStatus()" class="bg-gray-800 text-white px-4 py-2.5 rounded-lg text-sm font-bold">खोजें</button>
+            </div>
+            <div id="trackResult" class="space-y-3 pt-2"></div>
+        </section>
+
+    </main>
+
+    <script>
+        let selectedBookingItems = [];
+
+        function getBookings() { return JSON.parse(localStorage.getItem('mk_bookings') || '[]'); }
+        function saveBookings(d) { localStorage.setItem('mk_bookings', JSON.stringify(d)); }
+        function getRateCard() { 
+            const defaultRates = [
+                { id: 1, category: 'AC Repair', name: 'AC Service (Jet Wash)', price: 499 },
+                { id: 2, category: 'AC Repair', name: 'R32 / R410 Gas Refill', price: 2200 },
+                { id: 3, category: 'AC Repair', name: 'Capacitor 45 MFD', price: 450 },
+                { id: 4, category: 'Fridge', name: 'Thermostat Replacement', price: 650 },
+                { id: 5, category: 'Washing Machine', name: 'Drain Pipe & Valve', price: 350 }
+            ];
+            return JSON.parse(localStorage.getItem('mk_ratecard') || JSON.stringify(defaultRates)); 
+        }
+
+        function switchCustTab(tabId) {
+            document.getElementById('bookTab').classList.add('hidden');
+            document.getElementById('rateTab').classList.add('hidden');
+            document.getElementById('trackTab').classList.add('hidden');
+            document.getElementById(tabId).classList.remove('hidden');
+
+            document.getElementById('btnBook').className = "flex-1 py-2 text-xs font-bold rounded-md " + (tabId==='bookTab'?'bg-blue-600 text-white':'text-gray-600');
+            document.getElementById('btnRates').className = "flex-1 py-2 text-xs font-bold rounded-md " + (tabId==='rateTab'?'bg-blue-600 text-white':'text-gray-600');
+            document.getElementById('btnTrack').className = "flex-1 py-2 text-xs font-bold rounded-md " + (tabId==='trackTab'?'bg-blue-600 text-white':'text-gray-600');
+
+            if(tabId === 'rateTab') renderCustomerRateCard();
+        }
+
+        function renderCustomerRateCard() {
+            const rates = getRateCard();
+            const container = document.getElementById('customerRateCardContainer');
+
+            if(rates.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">रेट कार्ड उपलब्ध नहीं है।</p>`;
+                return;
+            }
+
+            // Group by category
+            const categories = [...new Set(rates.map(r => r.category))];
+
+            container.innerHTML = categories.map(cat => `
+                <div class="border rounded-lg overflow-hidden">
+                    <div class="bg-gray-100 p-2 font-bold text-xs text-blue-700 uppercase border-b">${cat}</div>
+                    <div class="divide-y divide-gray-100">
+                        ${rates.filter(r => r.category === cat).map(r => `
+                            <div class="p-2.5 flex justify-between items-center text-xs">
+                                <span class="text-gray-800 font-medium">${r.name}</span>
+                                <span class="font-bold text-green-700">₹${r.price}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterRateCardForBooking() {
+            const selectedCat = document.getElementById('cService').value;
+            const rates = getRateCard();
+            const box = document.getElementById('bookingRateCardBox');
+            const list = document.getElementById('bookingRateCardList');
+
+            selectedBookingItems = [];
+            document.getElementById('bookingEstTotal').innerText = '₹0';
+
+            if(!selectedCat) {
+                box.classList.add('hidden');
+                return;
+            }
+
+            const filtered = rates.filter(r => r.category.toLowerCase().includes(selectedCat.toLowerCase()) || selectedCat.toLowerCase().includes(r.category.toLowerCase()));
+
+            if(filtered.length === 0) {
+                box.classList.add('hidden');
+                return;
+            }
+
+            box.classList.remove('hidden');
+            list.innerHTML = filtered.map(r => `
+                <label class="flex items-center justify-between p-1.5 bg-white rounded border text-xs">
+                    <span>${r.name}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-green-600">₹${r.price}</span>
+                        <input type="checkbox" onchange="toggleBookingItem('${r.name}', ${r.price}, this.checked)">
+                    </div>
+                </label>
+            `).join('');
+        }
+
+        function toggleBookingItem(name, price, isChecked) {
+            if(isChecked) {
+                selectedBookingItems.push({ name, price });
+            } else {
+                selectedBookingItems = selectedBookingItems.filter(i => i.name !== name);
+            }
+            const total = selectedBookingItems.reduce((sum, i) => sum + i.price, 0);
+            document.getElementById('bookingEstTotal').innerText = '₹' + total;
+        }
+
+        function saveCustomerBooking(e) {
+            e.preventDefault();
+            const bookings = getBookings();
+            const totalEst = selectedBookingItems.reduce((sum, i) => sum + i.price, 0);
+
+            const newB = {
+                id: 'MK-' + Math.floor(1000 + Math.random() * 9000),
+                name: document.getElementById('cName').value,
+                phone: document.getElementById('cPhone').value,
+                service: document.getElementById('cService').value,
+                address: document.getElementById('cAddress').value,
+                selectedParts: selectedBookingItems,
+                estimateAmount: totalEst,
+                status: 'Pending',
+                technician: 'Unassigned',
+                technicianId: '',
+                date: new Date().toLocaleDateString('hi-IN'),
+                amount: 0
+            };
+
+            bookings.unshift(newB);
+            saveBookings(bookings);
+            alert(`बुकिंग सफल रही!\nआपकी बुकिंग ID: ${newB.id}`);
+            document.getElementById('custBookingForm').reset();
+            document.getElementById('bookingRateCardBox').classList.add('hidden');
+        }
+
+        function trackStatus() {
+            const phone = document.getElementById('trackPhone').value.trim();
+            const res = document.getElementById('trackResult');
+            const list = getBookings().filter(b => b.phone === phone);
+
+            if(list.length === 0) {
+                res.innerHTML = `<p class="text-xs text-red-500 font-bold">इस नंबर से कोई बुकिंग नहीं मिली।</p>`;
+                return;
+            }
+
+            res.innerHTML = list.map(b => `
+                <div class="p-3 bg-gray-50 border rounded-lg text-xs space-y-1.5">
+                    <div class="flex justify-between font-bold border-b pb-1">
+                        <span>ID: ${b.id}</span>
+                        <span class="text-blue-600">${b.status}</span>
+                    </div>
+                    <div><b>सर्विस:</b> ${b.service}</div>
+                    <div><b>असाइन टेक्नीशियन:</b> ${b.technician}</div>
+                    ${b.selectedParts && b.selectedParts.length > 0 ? `<div><b>चुने गए स्पेयर पार्ट्स:</b> ${b.selectedParts.map(p => p.name).join(', ')}</div>` : ''}
+                    ${b.status==='Pending Spare Parts'? `<div class="text-red-600 font-bold">पार्ट्स पेंडिंग: ${b.pendingReason} (तारीख: ${b.expectedDate})</div>` : ''}
+                    ${b.amount > 0 ? `<div class="text-green-600 font-bold text-sm">फाइनल बिल: ₹${b.amount}</div>` : ''}
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
